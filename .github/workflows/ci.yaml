@@ -23,6 +23,7 @@ jobs:
 
     - name: Run Approval Action
       uses: ekeel/approval-action@v1.0.3
+      id: approval
       with:
           # A GitHub token with repo scope.
           # The default secrets.GITHUB_TOKEN does not work with octokit to open/update/close issues.
