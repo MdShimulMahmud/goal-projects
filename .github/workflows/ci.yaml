@@ -137,32 +137,10 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/backend:${{ needs.version_check.outputs.current_version }}
 
+  
   tags:
     runs-on: ubuntu-latest
-    needs: [docker, version_check]
-    if: ${{ needs.version_check.outputs.version_diff == 'true' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set the new image version
-        run: |
-          echo "NEW_VERSION=${{ needs.version_check.outputs.current_version }}" >> $GITHUB_ENV
-
-      - name: Check deployment.yaml before update
-        run: cat k8s/deployment.yaml
-
-      - name: Update Kubernetes deployment.yaml image tags
-        run: |
-          sed -i.bak 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
-          sed -i.bak 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
-
-      - name: Check deployment.yaml after update
-        run: cat k8s/deployment.yaml
-
-        tags:
-    runs-on: ubuntu-latest
-    needs: [version_check]
+    needs: [docker,version_check]
     if: ${{ needs.version_check.outputs.version_diff == 'true' }}
     steps:
       - name: Checkout code
