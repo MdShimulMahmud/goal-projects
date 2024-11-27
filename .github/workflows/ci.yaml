@@ -60,8 +60,7 @@ jobs:
           waitTimeout: '5'
     - name: Get the output
       run: |
-        echo "Approved: ${{ steps.approval.outputs.approved }}"
-        echo "::set-output name=approval::${{ steps.approval.outputs.approved }}"
+        echo "approval=${{ steps.approval.outputs.approved }}" >> $GITHUB_ENV
 
 
   backend:
