@@ -26,7 +26,6 @@ jobs:
         run: |
           cd ./backend
           npm install
-          
 
       - name: Debug Run Number
         run: echo "Current Run Number = ${{ github.run_number }}"
@@ -38,8 +37,8 @@ jobs:
           current_version=$(cat VERSION)
           echo "Current version: $current_version"
 
-          # Set the current_version as an environment variable
-          echo "current_version=$current_version" >> $GITHUB_ENV
+          # Set the current_version as an output
+          echo "::set-output name=current_version::$current_version"
 
   frontend:
     runs-on: ubuntu-latest
@@ -71,8 +70,8 @@ jobs:
           current_version=$(cat VERSION)
           echo "Current version: $current_version"
 
-          # Set the current_version as an environment variable
-          echo "current_version=$current_version" >> $GITHUB_ENV
+          # Set the current_version as an output
+          echo "::set-output name=current_version::$current_version"
 
   docker:
     runs-on: ubuntu-latest
@@ -96,7 +95,7 @@ jobs:
           context: ./frontend
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/frontend:${{ env.current_version }}
+            ${{ secrets.DOCKER_USERNAME }}/frontend:${{ needs.backend.outputs.current_version }}
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
@@ -104,4 +103,4 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/backend:${{ env.current_version }}
+            ${{ secrets.DOCKER_USERNAME }}/backend:${{ needs.backend.outputs.current_version }}
