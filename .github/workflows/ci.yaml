@@ -104,3 +104,14 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/backend:${{ needs.backend.outputs.current_version }}
+            
+      - name: Update Kubernetes Deployment with new image tag
+        run: |
+          echo "Updating Kubernetes deployment image tags with current version: ${{ needs.backend.outputs.current_version }}"
+
+          # Use sed to replace frontend and backend image tags in k8s/deployment.yaml
+          sed -i 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ needs.backend.outputs.current_version }}|' k8s/deployment.yaml
+          sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ needs.backend.outputs.current_version }}|' k8s/deployment.yaml
+
+          # Optional: Print updated deployment.yaml for debugging
+          cat k8s/deployment.yaml
