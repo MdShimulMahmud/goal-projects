@@ -62,7 +62,7 @@ jobs:
     - name: Get the output
       run: |
         echo "Approved: ${{ steps.approval.outputs.approved }}"
-        echo "approval=${{steps.approval.outputs.approved}}" >> $GITHUB_ENV
+        echo "approval=${{ steps.approval.outputs.approved }}" >> $GITHUB_ENV
 
 
   backend:
