@@ -77,9 +77,45 @@ jobs:
           # Set the current_version as an output
           echo "::set-output name=current_version::$current_version"
 
-  docker:
+  version_check:
     runs-on: ubuntu-latest
     needs: [frontend, backend]
+    outputs:
+      current_version: ${{ needs.frontend.outputs.current_version }}
+      previous_version: ${{ steps.get_previous_version.outputs.previous_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Extract current version
+        id: get_current_version
+        run: echo "current_version=${{ needs.frontend.outputs.current_version }}" >> $GITHUB_ENV
+
+      - name: Read previous version from deployment.yaml
+        id: get_previous_version
+        run: |
+          # Extract previous version from the k8s/deployment.yaml
+          previous_version=$(grep -oP 'shimulmahmud/(frontend|backend):v[0-9]+\.[0-9]+\.[0-9]+' k8s/deployment.yaml | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+          echo "Previous version: $previous_version"
+
+          # Set as an output variable
+          echo "::set-output name=previous_version::$previous_version"
+          
+      - name: Check if current version differs from previous
+        id: version_diff
+        run: |
+          if [ "${{ env.current_version }}" != "${{ steps.get_previous_version.outputs.previous_version }}" ]; then
+            echo "Versions are different. Proceeding with deployment."
+            echo "version_diff=true" >> $GITHUB_ENV
+          else
+            echo "Versions are the same. Skipping deployment."
+            echo "version_diff=false" >> $GITHUB_ENV
+          fi
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [version_check]
+    if: env.version_diff == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -99,7 +135,7 @@ jobs:
           context: ./frontend
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/frontend:${{ needs.backend.outputs.current_version }}
+            ${{ secrets.DOCKER_USERNAME }}/frontend:${{ needs.version_check.outputs.current_version }}
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
@@ -107,19 +143,19 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/backend:${{ needs.backend.outputs.current_version }}
+            ${{ secrets.DOCKER_USERNAME }}/backend:${{ needs.version_check.outputs.current_version }}
 
   tags:
     runs-on: ubuntu-latest
-    needs: [frontend, backend, docker]
-    if: github.event_name != 'push' || github.actor != 'github-actions[bot]'  # Avoid triggering on workflow changes
+    needs: [version_check]
+    if: env.version_diff == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set the new image version
         run: |
-          echo "NEW_VERSION=${{ env.current_version }}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${{ needs.version_check.outputs.current_version }}" >> $GITHUB_ENV
 
       - name: Update Kubernetes deployment.yaml image tags
         run: |
@@ -129,16 +165,10 @@ jobs:
           # Replace the backend image tag if necessary
           sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
 
-      - name: Check if deployment.yaml was updated
-        run: |
-          # Check if the deployment.yaml file was modified (e.g., tags were updated)
-          git diff --exit-code k8s/deployment.yaml || echo "deployment.yaml updated"
-
       - name: Commit and push changes to deployment.yaml
         uses: EndBug/add-and-commit@v7
         with:
           author_name: "${{ github.actor }}"  # Dynamic author name
           author_email: "${{ github.actor }}@users.noreply.github.com"  # Dynamic email
           message: "Update Kubernetes deployment image tags to version ${{ env.NEW_VERSION }}"
-        # This step is conditional on the previous step indicating changes
         if: success() && github.event_name != 'push' && github.actor != 'github-actions[bot]'
