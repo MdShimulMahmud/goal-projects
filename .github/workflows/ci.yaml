@@ -139,7 +139,7 @@ jobs:
 
   tags:
     runs-on: ubuntu-latest
-    needs: [version_check]
+    needs: [docker, version_check]
     if: ${{ needs.version_check.outputs.version_diff == 'true' }}
     steps:
       - name: Checkout code
@@ -160,16 +160,36 @@ jobs:
       - name: Check deployment.yaml after update
         run: cat k8s/deployment.yaml
 
-      - name: Commit and push changes to deployment.yaml
-        uses: EndBug/add-and-commit@v7
-        with:
-          author_name: "${{ github.actor }}"
-          author_email: "${{ github.actor }}@users.noreply.github.com"
-          message: "Update Kubernetes deployment image tags to version ${{ env.NEW_VERSION }}"
-        if: success() && github.event_name != 'push' && github.actor != 'github-actions[bot]'
+        tags:
+    runs-on: ubuntu-latest
+    needs: [version_check]
+    if: ${{ needs.version_check.outputs.version_diff == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set the new image version
+        run: |
+          echo "NEW_VERSION=${{ needs.version_check.outputs.current_version }}" >> $GITHUB_ENV
+
+      - name: Update Kubernetes deployment.yaml image tags
+        run: |
+          sed -i 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
+          sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
+
+      - name: Stage changes to deployment.yaml
+        run: git add k8s/deployment.yaml
+
+      - name: Configure Git for Commit
+        run: |
+          git config user.name "MdShimulMahmud"
+          git config user.email "shimulmahmud18@gmail.com"
+
+      - name: Commit changes
+        run: git commit -m "Update Kubernetes deployment image tags to version ${{ env.NEW_VERSION }}"
+
+      - name: Push changes
+        run: git push origin master
 
       - name: Check Git status
         run: git status
-
-      - name: Check Git log
-        run: git log -n 1
