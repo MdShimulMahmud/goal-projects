@@ -162,4 +162,6 @@ jobs:
           git add k8s/deployment.yaml
           git commit -m "Update Kubernetes deployment image tags"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/MdShimulMahmud/goal-projects.git
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
