@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+
+  frontend: 
+    build: 
+      context: ./frontend
+      dockerfile: dockerfile
+
+    depends_on: 
+      - backend
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
