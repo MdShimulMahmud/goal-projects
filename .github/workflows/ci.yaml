@@ -110,35 +110,35 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/backend:${{ needs.backend.outputs.current_version }}
 
   tags:
-  runs-on: ubuntu-latest
-  needs: [frontend, backend, docker]
-  if: github.event_name != 'push' || github.actor != 'github-actions[bot]'  # Avoid triggering on workflow changes
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    runs-on: ubuntu-latest
+    needs: [frontend, backend, docker]
+    if: github.event_name != 'push' || github.actor != 'github-actions[bot]'  # Avoid triggering on workflow changes
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set the new image version
-      run: |
-        echo "NEW_VERSION=${{ env.current_version }}" >> $GITHUB_ENV
+      - name: Set the new image version
+        run: |
+          echo "NEW_VERSION=${{ env.current_version }}" >> $GITHUB_ENV
 
-    - name: Update Kubernetes deployment.yaml image tags
-      run: |
-        # Replace the frontend image tag if necessary
-        sed -i 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
+      - name: Update Kubernetes deployment.yaml image tags
+        run: |
+          # Replace the frontend image tag if necessary
+          sed -i 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
 
-        # Replace the backend image tag if necessary
-        sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
+          # Replace the backend image tag if necessary
+          sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
 
-    - name: Check if deployment.yaml was updated
-      run: |
-        # Check if the deployment.yaml file was modified (e.g., tags were updated)
-        git diff --exit-code k8s/deployment.yaml || echo "deployment.yaml updated"
+      - name: Check if deployment.yaml was updated
+        run: |
+          # Check if the deployment.yaml file was modified (e.g., tags were updated)
+          git diff --exit-code k8s/deployment.yaml || echo "deployment.yaml updated"
 
-    - name: Commit and push changes to deployment.yaml
-      uses: EndBug/add-and-commit@v7
-      with:
-        author_name: "${{ github.actor }}"  # Dynamic author name
-        author_email: "${{ github.actor }}@users.noreply.github.com"  # Dynamic email
-        message: "Update Kubernetes deployment image tags to version ${{ env.NEW_VERSION }}"
-      # This step is conditional on the previous step indicating changes
-      if: success() && github.event_name != 'push' && github.actor != 'github-actions[bot]'
+      - name: Commit and push changes to deployment.yaml
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: "${{ github.actor }}"  # Dynamic author name
+          author_email: "${{ github.actor }}@users.noreply.github.com"  # Dynamic email
+          message: "Update Kubernetes deployment image tags to version ${{ env.NEW_VERSION }}"
+        # This step is conditional on the previous step indicating changes
+        if: success() && github.event_name != 'push' && github.actor != 'github-actions[bot]'
