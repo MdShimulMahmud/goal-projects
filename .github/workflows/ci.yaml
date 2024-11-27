@@ -16,7 +16,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     outputs:
-      approval: ${{ steps.check.outputs.approved }}
+      approval: ${{ steps.approval.outputs.approved }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -46,11 +46,10 @@ jobs:
           echo "Approved: ${{ steps.approval.outputs.approved }}"
           echo "Approval status is stored in environment variable: $APPROVED"
 
-
   backend:
     runs-on: ubuntu-latest
     needs: test
-    if: ${{ env.APPROVED == 'true' }} 
+    if: ${{ jobs.test.outputs.approval == 'true' }}
     outputs:
       current_version: ${{ steps.check.outputs.current_version }}
     steps:
