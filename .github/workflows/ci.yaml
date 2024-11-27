@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  build:
+  backend:
     runs-on: ubuntu-latest
     outputs:
       current_version: ${{ steps.check.outputs.current_version }}
@@ -20,10 +20,46 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "23.0.0"
+          node-version: "16.x"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd ./backend
+          npm install
+          npm run build
+
+      - name: Debug Run Number
+        run: echo "Current Run Number = ${{ github.run_number }}"
+
+      - name: Check current version
+        id: check
+        run: |
+          # Read the current version from the VERSION file
+          current_version=$(cat VERSION)
+          echo "Current version: $current_version"
+
+          # Set the current_version as an environment variable
+          echo "current_version=$current_version" >> $GITHUB_ENV
+
+  frontend:
+    runs-on: ubuntu-latest
+    needs: backend
+    outputs:
+      current_version: ${{ steps.check.outputs.current_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+
+      - name: Install dependencies
+        run: |
+          cd ./frontend
+          npm install
+          npm run build
 
       - name: Run build
         run: npm run build
