@@ -15,13 +15,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    outputs:
+      approval: ${{ steps.check.outputs.approval }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Run Approval Action
       uses: ekeel/approval-action@v1.0.3
+      id: approval
       with:
           # A GitHub token with repo scope.
           # The default secrets.GITHUB_TOKEN does not work with octokit to open/update/close issues.
@@ -60,6 +62,7 @@ jobs:
     - name: Get the output
       run: |
         echo "Approved: ${{ steps.approval.outputs.approved }}"
+        echo "approval=${{steps.approval.outputs.approved}}" >> $GITHUB_ENV
 
 
   backend:
