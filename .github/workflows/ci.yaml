@@ -29,7 +29,7 @@ jobs:
 
           # A comma separated list of GitHub usernames that are allowed to approve.
           # Example: 'ekeel,octocat'
-          approvers: 'MdShimulMahmud,aakkiiff'
+          approvers: 'MdShimulMahmud'
 
           # The number of approvals/rejections required to continue the workflow.
           minimumApprovals: '1'
