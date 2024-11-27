@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - 'k8s/deployment.yaml'
   pull_request:
     branches:
       - master
+    paths-ignore:
+      - 'k8s/deployment.yaml'
 
 jobs:
   backend:
@@ -104,14 +108,30 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/backend:${{ needs.backend.outputs.current_version }}
-            
-      - name: Update Kubernetes Deployment with new image tag
+
+  tags:
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name != 'push' || github.actor != 'github-actions[bot]' # Avoid triggering on workflow changes
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set the new image version
         run: |
-          echo "Updating Kubernetes deployment image tags with current version: ${{ needs.backend.outputs.current_version }}"
+          echo "NEW_VERSION=${{ env.current_version }}" >> $GITHUB_ENV
 
-          # Use sed to replace frontend and backend image tags in k8s/deployment.yaml
-          sed -i 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ needs.backend.outputs.current_version }}|' k8s/deployment.yaml
-          sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ needs.backend.outputs.current_version }}|' k8s/deployment.yaml
+      - name: Update Kubernetes deployment.yaml image tags
+        run: |
+          # Replace the frontend image tag
+          sed -i 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
+          
+          # Replace the backend image tag
+          sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
 
-          # Optional: Print updated deployment.yaml for debugging
-          cat k8s/deployment.yaml
+      - name: Commit and push changes to deployment.yaml
+        uses: EndBug/add-and-commit@v7
+        with:
+          # author_name: "MdShimulMahmud"
+          # author_email: "shimulmahmud18@gmail.com"
+          message: "Update Kubernetes deployment image tags to version ${{ env.NEW_VERSION }}"
