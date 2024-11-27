@@ -155,14 +155,11 @@ jobs:
           sed -i 's|shimulmahmud/frontend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/frontend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
           sed -i 's|shimulmahmud/backend:v[0-9]*\.[0-9]*\.[0-9]*|shimulmahmud/backend:${{ env.NEW_VERSION }}|' k8s/deployment.yaml
 
-      - name: Configure Git for Commit
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-      - name: Commit and push changes to deployment.yaml
-        run: |
           git add k8s/deployment.yaml
-          git commit -m "Update Kubernetes deployment image tags to version ${{ env.NEW_VERSION }}"
+          git commit -m "Update Kubernetes deployment image tags"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/MdShimulMahmud/goal-projects.git
 
