@@ -6,11 +6,19 @@ pipeline {
         DOCKER_PASSWORD = credentials('docker-password')
     }
     stages {
+        stage('Checkout') {
+            agent any
+            when {
+                beforeAgent true
+            }
+            steps {
+                checkout scm
+            }
+        }
         stage('Backend') {
             agent any
             steps {
                 script {
-                    checkout scm
                     sh """
                         cd backend
                         npm install
@@ -25,7 +33,6 @@ pipeline {
             agent any
             steps {
                 script {
-                    checkout scm
                     sh """
                         cd frontend
                         npm install
@@ -41,21 +48,21 @@ pipeline {
             agent any
             steps {
                 script {
-                    checkout scm
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     try {
                         sh """
                             docker --version
+                            docker info || echo "Docker daemon access may be restricted. Ensure user is in the docker group."
                             docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
 
-                            docker build ./frontend --tag ${DOCKER_USERNAME}/frontend:${current_version}
+                            docker build -t ${DOCKER_USERNAME}/frontend:${current_version} ./frontend
                             docker push ${DOCKER_USERNAME}/frontend:${current_version}
 
-                            docker build ./backend --tag ${DOCKER_USERNAME}/backend:${current_version}
+                            docker build -t ${DOCKER_USERNAME}/backend:${current_version} ./backend
                             docker push ${DOCKER_USERNAME}/backend:${current_version}
                         """
-                    } finally {
-                        echo "Image build failed"
+                    } catch (Exception e) {
+                        error "Docker build or push failed: ${e}"
                     }
                 }
             }
@@ -64,7 +71,6 @@ pipeline {
             agent any
             steps {
                 script {
-                    checkout scm
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     sh """
                         sed -i 's|shimulmahmud/frontend:v[0-9]*\\.[0-9]*\\.[0-9]*|shimulmahmud/frontend:${current_version}|' k8s/deployment.yaml
