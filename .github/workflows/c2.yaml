@@ -1,0 +1,28 @@
+name: Approval Workflow
+on:
+  workflow_run:
+    workflows: ["Build Workflow"]
+    types:
+      - completed
+
+jobs:
+  approval:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Create GitHub Issue for Approval
+        id: issue
+        run: |
+          ISSUE_TITLE="Approval Needed for Next Step"
+          ISSUE_BODY="Please approve to proceed with the third workflow."
+          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "approval" --assignee "@me")
+          echo "::set-output name=issue_number::$(echo "$issue_response" | jq -r .number)"
+      
+      - name: Wait for approval (manual step)
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: approval-needed.yml
+          ref: refs/heads/master

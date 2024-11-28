@@ -1,0 +1,19 @@
+name: Conditional Workflow
+on:
+  workflow_run:
+    workflows: ["Approval Workflow"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_commit.message == 'approved' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Deploy
+        run: |
+          echo "Deploying to production"
+          # Add your deployment commands here
