@@ -70,7 +70,7 @@ pipeline {
                         git config user.email "jenkins@localhost"
                         git add k8s/deployment.yaml
                         git commit -m "Update Kubernetes deployment image tags to ${current_version}"
-                        git push origin master
+                        git push -u origin master
                     """
                 }
             }
