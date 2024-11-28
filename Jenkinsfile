@@ -6,26 +6,6 @@ pipeline {
         DOCKER_PASSWORD = credentials('docker-password')
     }
     stages {
-        stage('Test') {
-            agent any
-            steps {
-                script {
-                    checkout scm
-                    def approved = sh(
-                        script: """
-                            # Run approval logic (replace with actual approval mechanism if needed)
-                            echo "Manual approval required. Simulating approval..."
-                            echo "approved"
-                        """,
-                        returnStdout: true
-                    ).trim()
-                    currentBuild.description = "Approved: ${approved}"
-                    if (approved != 'approved') {
-                        error "Approval required to proceed!"
-                    }
-                }
-            }
-        }
         stage('Backend') {
             agent any
             steps {
