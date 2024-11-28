@@ -72,7 +72,7 @@ pipeline {
                             docker build ./backend --push --tag ${DOCKER_USERNAME}/backend:${current_version}
                         """
                     } finally {
-                        sh "docker buildx rm || echo 'No Buildx context to remove'"
+                        echo "No Buildx context to remove"
                     }
                 }
             }
