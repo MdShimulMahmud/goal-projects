@@ -50,6 +50,7 @@ pipeline {
                     ).trim()
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     def version_diff = current_version != previous_version
+                    echo "Previous Version: ${previous_version}, Current Version: ${current_version}"
                     if (!version_diff) {
                         error "No version difference detected. Skipping build."
                     }
@@ -63,12 +64,17 @@ pipeline {
                 script {
                     checkout scm
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
-                    sh """
-                        docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-                        docker buildx create --use
-                        docker buildx build ./frontend --push --tag ${DOCKER_USERNAME}/frontend:${current_version}
-                        docker buildx build ./backend --push --tag ${DOCKER_USERNAME}/backend:${current_version}
-                    """
+                    try {
+                        sh """
+                            docker --version || { echo 'Docker not installed'; exit 1; }
+                            docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+                            docker buildx create --use || echo 'Buildx context already exists'
+                            docker buildx build ./frontend --push --tag ${DOCKER_USERNAME}/frontend:${current_version}
+                            docker buildx build ./backend --push --tag ${DOCKER_USERNAME}/backend:${current_version}
+                        """
+                    } finally {
+                        sh "docker buildx rm || echo 'No Buildx context to remove'"
+                    }
                 }
             }
         }
@@ -84,11 +90,22 @@ pipeline {
                         git config user.name "jenkins-bot"
                         git config user.email "jenkins@localhost"
                         git add k8s/deployment.yaml
-                        git commit -m "Update Kubernetes deployment image tags"
+                        git commit -m "Update Kubernetes deployment image tags to ${current_version}"
                         git push origin master
                     """
                 }
             }
+        }
+    }
+    post {
+        always {
+            echo "Pipeline completed."
+        }
+        failure {
+            echo "Pipeline failed. Check the logs for errors."
+        }
+        success {
+            echo "Pipeline succeeded."
         }
     }
 }
