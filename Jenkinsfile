@@ -6,15 +6,6 @@ pipeline {
         DOCKER_PASSWORD = credentials('docker-password')
     }
     stages {
-        stage('Checkout') {
-            agent any
-            when {
-                beforeAgent true
-            }
-            steps {
-                checkout scm
-            }
-        }
         stage('Backend') {
             agent any
             steps {
