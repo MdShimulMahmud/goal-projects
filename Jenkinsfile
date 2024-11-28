@@ -1,9 +1,9 @@
 pipeline {
     agent none
     environment {
-        GH_TOKEN = credentials('github-token')
-        DOCKER_USERNAME = credentials('docker-username')
-        DOCKER_PASSWORD = credentials('docker-password')
+        GH_TOKEN = credentials('github-token')  // GitHub token
+        DOCKER_USERNAME = credentials('docker-username')  // Docker Hub username
+        DOCKER_PASSWORD = credentials('docker-password')  // Docker Hub access token
     }
     stages {
         stage('Backend') {
@@ -44,7 +44,7 @@ pipeline {
                         sh """
                             docker --version
                             docker info || echo "Docker daemon access may be restricted. Ensure user is in the docker group."
-                            docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+                            echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 
                             docker build -t ${DOCKER_USERNAME}/frontend:${current_version} ./frontend
                             docker push ${DOCKER_USERNAME}/frontend:${current_version}
