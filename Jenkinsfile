@@ -68,17 +68,17 @@ pipeline {
                             git config user.name "jenkins-bot"
                             git config user.email "jenkins@localhost"
                             git checkout master
+                            git pull https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/MdShimulMahmud/goal-projects master || true
                             sed -i 's|your_repo/frontend:v[0-9]*\\.[0-9]*\\.[0-9]*|your_repo/frontend:${current_version}|' k8s/deployment.yaml
                             sed -i 's|your_repo/backend:v[0-9]*\\.[0-9]*\\.[0-9]*|your_repo/backend:${current_version}|' k8s/deployment.yaml
                             git add k8s/deployment.yaml
-                            git commit -m "Update Kubernetes deployment image tags to ${current_version}"
+                            git commit -m "Update Kubernetes deployment image tags to ${current_version}" || true
                             git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/MdShimulMahmud/goal-projects master
                         """
                     }
                 }
             }
         }
-
     }
     post {
         always {
