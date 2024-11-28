@@ -68,9 +68,8 @@ pipeline {
                         sh """
                             docker --version || { echo 'Docker not installed'; exit 1; }
                             docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-                            docker buildx create --use || echo 'Buildx context already exists'
-                            docker buildx build ./frontend --push --tag ${DOCKER_USERNAME}/frontend:${current_version}
-                            docker buildx build ./backend --push --tag ${DOCKER_USERNAME}/backend:${current_version}
+                            docker build ./frontend --push --tag ${DOCKER_USERNAME}/frontend:${current_version}
+                            docker build ./backend --push --tag ${DOCKER_USERNAME}/backend:${current_version}
                         """
                     } finally {
                         sh "docker buildx rm || echo 'No Buildx context to remove'"
