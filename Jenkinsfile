@@ -15,7 +15,7 @@ pipeline {
                         cd backend
                         npm install
                         echo "Run Number: ${BUILD_NUMBER}"
-                        current_version=\$(cat VERSION)
+                        current_version=\$(cat ../VERSION)
                         echo "Current Version: \$current_version"
                     """
                 }
@@ -31,7 +31,7 @@ pipeline {
                         npm install
                         npm run build
                         echo "Run Number: ${BUILD_NUMBER}"
-                        current_version=\$(cat VERSION)
+                        current_version=\$(cat ../VERSION)
                         echo "Current Version: \$current_version"
                     """
                 }
@@ -48,7 +48,7 @@ pipeline {
                         """,
                         returnStdout: true
                     ).trim()
-                    def current_version = sh(script: "cat frontend/VERSION", returnStdout: true).trim()
+                    def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     def version_diff = current_version != previous_version
                     if (!version_diff) {
                         error "No version difference detected. Skipping build."
@@ -62,6 +62,7 @@ pipeline {
             steps {
                 script {
                     checkout scm
+                    def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     sh """
                         docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
                         docker buildx create --use
@@ -76,6 +77,7 @@ pipeline {
             steps {
                 script {
                     checkout scm
+                    def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     sh """
                         sed -i 's|shimulmahmud/frontend:v[0-9]*\\.[0-9]*\\.[0-9]*|shimulmahmud/frontend:${current_version}|' k8s/deployment.yaml
                         sed -i 's|shimulmahmud/backend:v[0-9]*\\.[0-9]*\\.[0-9]*|shimulmahmud/backend:${current_version}|' k8s/deployment.yaml
