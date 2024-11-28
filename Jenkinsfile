@@ -7,7 +7,7 @@ pipeline {
     }
     stages {
         stage('Test') {
-            agent { label 'ubuntu' }
+            agent any
             steps {
                 script {
                     checkout scm
@@ -27,7 +27,7 @@ pipeline {
             }
         }
         stage('Backend') {
-            agent { label 'ubuntu' }
+            agent any
             steps {
                 script {
                     checkout scm
@@ -42,7 +42,7 @@ pipeline {
             }
         }
         stage('Frontend') {
-            agent { label 'ubuntu' }
+            agent any
             steps {
                 script {
                     checkout scm
@@ -58,7 +58,7 @@ pipeline {
             }
         }
         stage('Version Check') {
-            agent { label 'ubuntu' }
+            agent any
             steps {
                 script {
                     checkout scm
@@ -78,7 +78,7 @@ pipeline {
             }
         }
         stage('Docker') {
-            agent { label 'ubuntu' }
+            agent any
             steps {
                 script {
                     checkout scm
@@ -92,7 +92,7 @@ pipeline {
             }
         }
         stage('Update Kubernetes Tags') {
-            agent { label 'ubuntu' }
+            agent any
             steps {
                 script {
                     checkout scm
