@@ -1,21 +1,21 @@
-name: Conditional Workflow
+name: Conditional Workflow (Third Workflow)
+
 on:
-  workflow_dispatch:
-    inputs:
-      approval:
-        description: 'Approval for Deployment'
-        required: true
-        default: 'no'
+  workflow_run:
+    workflows: ["Approval Workflow"]
+    types:
+      - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.approval == 'yes' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.approval == 'true' }}  # Runs only if approved in Workflow 2
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Deploy
+      - name: Deploy to production
         run: |
-          echo "Deploying to production"
-          # Add your deployment commands here
+          echo "Deploying to production..."  # Replace with actual deployment steps
+          # Add deployment commands (e.g., AWS CLI, Docker, Kubernetes, etc.)
