@@ -64,13 +64,15 @@ pipeline {
                 script {
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     sh """
+                        git fetch origin
+                        git checkout master
                         sed -i 's|shimulmahmud/frontend:v[0-9]*\\.[0-9]*\\.[0-9]*|shimulmahmud/frontend:${current_version}|' k8s/deployment.yaml
                         sed -i 's|shimulmahmud/backend:v[0-9]*\\.[0-9]*\\.[0-9]*|shimulmahmud/backend:${current_version}|' k8s/deployment.yaml
                         git config user.name "jenkins-bot"
                         git config user.email "jenkins@localhost"
                         git add k8s/deployment.yaml
                         git commit -m "Update Kubernetes deployment image tags to ${current_version}"
-                        git push -u origin master
+                        git push origin master
                     """
                 }
             }
