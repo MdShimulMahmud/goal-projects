@@ -22,7 +22,7 @@ jobs:
         run: |
           ISSUE_TITLE="Approval Needed for Next Step"
           ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
-          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "approval" --assignee "@me")
+          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "approval" --assignee "MdShimulMahmud")
           echo "::set-output name=issue_number::$(echo "$issue_response" | jq -r .number)"
         env:
           GH_TOKEN: ${{ github.token }}  # Provide the GitHub token for authentication
