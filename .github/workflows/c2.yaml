@@ -13,6 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Set up GitHub CLI
+        run: |
+          sudo apt-get install gh
+
       - name: Create GitHub Issue for Approval
         id: issue
         run: |
@@ -20,9 +24,5 @@ jobs:
           ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
           issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "approval" --assignee "@me")
           echo "::set-output name=issue_number::$(echo "$issue_response" | jq -r .number)"
-
-      - name: Comment for approval
-        run: |
-          echo "Waiting for approval..."
-          echo "You need to comment 'approve' on the GitHub issue to trigger the next step."
-
+        env:
+          GH_TOKEN: ${{ github.token }}  # Provide the GitHub token for authentication
