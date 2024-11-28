@@ -37,27 +37,6 @@ pipeline {
                 }
             }
         }
-        stage('Version Check') {
-            agent any
-            steps {
-                script {
-                    checkout scm
-                    def previous_version = sh(
-                        script: """
-                            grep -oP 'shimulmahmud/(frontend|backend):v[0-9]+\\.[0-9]+\\.[0-9]+' k8s/deployment.yaml | grep -oP 'v[0-9]+\\.[0-9]+\\.[0-9]+' | head -n 1
-                        """,
-                        returnStdout: true
-                    ).trim()
-                    def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
-                    def version_diff = current_version != previous_version
-                    echo "Previous Version: ${previous_version}, Current Version: ${current_version}"
-                    if (!version_diff) {
-                        error "No version difference detected. Skipping build."
-                    }
-                    currentBuild.description = "Current: ${current_version}, Previous: ${previous_version}"
-                }
-            }
-        }
         stage('Docker') {
             agent any
             steps {
@@ -66,13 +45,17 @@ pipeline {
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     try {
                         sh """
-                            docker --version || { echo 'Docker not installed'; exit 1; }
+                            docker --version
                             docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-                            docker build ./frontend --push --tag ${DOCKER_USERNAME}/frontend:${current_version}
-                            docker build ./backend --push --tag ${DOCKER_USERNAME}/backend:${current_version}
+
+                            docker build ./frontend --tag ${DOCKER_USERNAME}/frontend:${current_version}
+                            docker push ${DOCKER_USERNAME}/frontend:${current_version}
+
+                            docker build ./backend --tag ${DOCKER_USERNAME}/backend:${current_version}
+                            docker push ${DOCKER_USERNAME}/backend:${current_version}
                         """
                     } finally {
-                        echo "No Buildx context to remove"
+                        echo "Image build failed"
                     }
                 }
             }
