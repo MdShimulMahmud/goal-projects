@@ -1,4 +1,5 @@
 name: Approval Workflow
+
 on:
   workflow_run:
     workflows: ["Build Workflow"]
@@ -6,23 +7,38 @@ on:
       - completed
 
 jobs:
-  approval:
+  test:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      approval: ${{ steps.approval.outputs.approved }}
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up GitHub CLI
-        run: |
-          sudo apt-get install gh
+      - name: Run Approval Action
+        uses: ekeel/approval-action@v1.0.3
+        id: approval
+        with:
+          token: ${{ secrets.GH_TOKEN }}  # GitHub Token for authentication
+          approvers: 'MdShimulMahmud'    # Username of the approver
+          minimumApprovals: '1'          # Minimum number of approvals needed
+          issueTitle: 'Approval Required for Next Step'
+          issueBody: 'Please comment "approve" to proceed with the workflow.'
+          issueLabels: 'ManualApproval,ApprovalAction'
+          excludeInitiator: 'false'      # Include the initiator in the approval process
+          approveWords: 'approve, approved'  # Keywords that approve the request
+          rejectWords: 'deny, denied, reject, rejected'  # Keywords that reject the request
+          waitInterval: '1'  # Interval to check for new comments (in minutes)
+          waitTimeout: '5'   # Timeout in minutes before giving up on approval
 
-      - name: Create GitHub Issue for Approval
-        id: issue
+      - name: Store the approval output as an environment variable
         run: |
-          ISSUE_TITLE="Approval Needed for Next Step"
-          ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
-          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "approval" --assignee "MdShimulMahmud")
-          echo "::set-output name=issue_number::$(echo "$issue_response" | jq -r .number)"
+          echo "APPROVED=${{ steps.approval.outputs.approved }}" >> $GITHUB_ENV
+
+      - name: Get the approval output
+        run: |
+          echo "Approved: ${{ steps.approval.outputs.approved }}"
+          echo "Approval status is stored in environment variable: $APPROVED"
         env:
-          GH_TOKEN: ${{ github.token }}  # Provide the GitHub token for authentication
+          GH_TOKEN: ${{ github.token }} 
