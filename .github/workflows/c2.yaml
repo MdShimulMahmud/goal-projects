@@ -9,7 +9,7 @@ on:
 jobs:
   approval:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Only run if the Build Workflow is successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Run only if Build Workflow is successful
 
     steps:
       - name: Checkout repository
@@ -17,8 +17,10 @@ jobs:
 
       - name: Set up GitHub CLI
         run: |
-          sudo apt-get update
-          sudo apt-get install gh
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
       - name: Install jq
         run: sudo apt-get install jq
 
@@ -27,12 +29,14 @@ jobs:
         run: |
           ISSUE_TITLE="Approval Needed for Next Step"
           ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
-          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud" --json number 2>&1) || {
-            echo "Failed to create issue: $issue_response"
-            exit 1
-          }
+          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud")  # Update with your username
           echo "Raw issue response: $issue_response"
-          issue_number=$(echo "$issue_response" | jq -r '.number')  # Parse JSON safely
+          # Extract issue number from response
+          issue_number=$(echo "$issue_response" | grep -oE 'https://github.com/.*/issues/[0-9]+' | grep -oE '[0-9]+$')
+          if [ -z "$issue_number" ]; then
+            echo "Failed to extract issue number."
+            exit 1
+          fi
           echo "::set-output name=issue_number::$issue_number"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -42,7 +46,7 @@ jobs:
         id: approval
         with:
           token: ${{ secrets.GH_TOKEN }}
-          approvers: 'MdShimulMahmud'
+          approvers: 'MdShimulMahmud'  # Update with your username
           minimumApprovals: '1'
           issueTitle: 'Approval Needed for Next Step'
           issueBody: 'Please comment "approve" to proceed with the third workflow.'
