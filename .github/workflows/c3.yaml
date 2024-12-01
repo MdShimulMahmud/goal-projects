@@ -1,3 +1,11 @@
+name: Conditional Workflow (Third Workflow)
+
+on:
+  workflow_run:
+    workflows: ["Approval Workflow"]
+    types:
+      - completed
+      
 jobs:
   deploy:
     runs-on: ubuntu-latest
