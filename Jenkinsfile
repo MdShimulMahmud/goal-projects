@@ -60,11 +60,12 @@ pipeline {
             agent any
             steps {
                 script {
+                    // Read the current version from the VERSION file
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
                     
-                    // Trigger the update-k8s-manifests pipeline and pass the current version as a single parameter
+                    // Trigger the update-k8s-manifests pipeline and pass the current version as the IMAGE_TAG
                     build job: 'update-k8s-manifests', parameters: [
-                        string(name: 'IMAGE_TAG', value: "v${current_version}")
+                        string(name: 'IMAGE_TAG', value: "${current_version}")
                     ]
                 }
             }
