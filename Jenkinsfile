@@ -61,24 +61,14 @@ pipeline {
             steps {
                 script {
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
+                    
+                    // Trigger the update-k8s-manifests pipeline and pass the current version as a single parameter
                     build job: 'update-k8s-manifests', parameters: [
-                        string(name: 'FRONTEND_IMAGE_TAG', value: "${DOCKER_USERNAME}/frontend:${current_version}"),
-                        string(name: 'BACKEND_IMAGE_TAG', value: "${DOCKER_USERNAME}/backend:${current_version}")
+                        string(name: 'IMAGE_TAG', value: "v${current_version}")
                     ]
                 }
             }
         }
 
-    }
-    post {
-        always {
-            echo "Pipeline completed."
-        }
-        failure {
-            echo "Pipeline failed. Check the logs for errors."
-        }
-        success {
-            echo "Pipeline succeeded."
-        }
     }
 }
