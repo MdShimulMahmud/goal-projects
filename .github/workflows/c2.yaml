@@ -5,7 +5,7 @@ on:
     workflows: ["Build Workflow"]
     types:
       - completed
-      
+
 jobs:
   approval_jobs:
     runs-on: ubuntu-latest
@@ -52,16 +52,13 @@ jobs:
           excludeInitiator: 'false'
           approveWords: 'approve, approved'
           rejectWords: 'deny, denied, reject, rejected'
-          waitInterval: '10'
+          waitInterval: '1'
           waitTimeout: '60'
 
-      - name: Save approval status to artifact
+      - name: Store approval status as environment variable
         run: |
-          echo "${{ steps.approval.outputs.approved }}" > approval_status.txt
-        id: save-approval
+          echo "APPROVED=${{ steps.approval.outputs.approved }}" >> $GITHUB_ENV
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: approval-status
-          path: approval_status.txt
+      - name: Output approval status
+        run: |
+          echo "Approval status: ${{ steps.approval.outputs.approved }}"

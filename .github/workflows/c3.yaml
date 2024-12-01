@@ -5,31 +5,22 @@ on:
     workflows: ["Approval Workflow"]
     types:
       - completed
-      
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Runs only if Approval Workflow is successful
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: approval-status
-
-      - name: Verify artifact content
-        run: |
-          cat approval_status.txt  # This will display the content of the artifact for debugging
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Read approval status
-        id: read-approval
         run: |
-          APPROVED=$(cat approval_status.txt)
-          echo "Approval Status: $APPROVED"
-          echo "approved=$APPROVED" >> $GITHUB_ENV
-
+          echo "Approval Status: ${{ env.APPROVED }}"
+        
       - name: Conditional Deployment
-        if: ${{ env.approved == 'true' }}
+        if: ${{ env.APPROVED == 'true' }}  # Run deployment only if approved
         run: |
           echo "Deploying to production..."
           # Add deployment commands (e.g., AWS CLI, Docker, Kubernetes, etc.)
