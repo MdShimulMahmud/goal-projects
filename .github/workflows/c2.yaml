@@ -18,9 +18,8 @@ jobs:
       - name: Set up GitHub CLI
         run: |
           sudo apt-get update
-          sudo apt-get install gh  # Install GitHub CLI
-        # Install jq as well if not already installed, since it's used for extracting issue number
-      - name: Install jq (if not available)
+          sudo apt-get install gh
+      - name: Install jq
         run: sudo apt-get install jq
 
       - name: Create GitHub Issue for Approval
@@ -28,18 +27,22 @@ jobs:
         run: |
           ISSUE_TITLE="Approval Needed for Next Step"
           ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
-          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud")  # Change to a valid GitHub username
-          issue_number=$(echo "$issue_response" | jq -r .number)
-          echo "::set-output name=issue_number::$issue_number"  # Output the issue number
+          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud" --json number 2>&1) || {
+            echo "Failed to create issue: $issue_response"
+            exit 1
+          }
+          echo "Raw issue response: $issue_response"
+          issue_number=$(echo "$issue_response" | jq -r '.number')  # Parse JSON safely
+          echo "::set-output name=issue_number::$issue_number"
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}  # Provide the GitHub token for authentication
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Wait for approval comment
         uses: ekeel/approval-action@v1.0.3
         id: approval
         with:
           token: ${{ secrets.GH_TOKEN }}
-          approvers: 'your-github-username'  # Approver's GitHub username
+          approvers: 'MdShimulMahmud'
           minimumApprovals: '1'
           issueTitle: 'Approval Needed for Next Step'
           issueBody: 'Please comment "approve" to proceed with the third workflow.'
