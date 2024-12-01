@@ -9,9 +9,7 @@ on:
 jobs:
   approval_jobs:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Run only if Build Workflow is successful
-    outputs:
-      approval: ${{ steps.approval.outputs.approved }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -30,9 +28,8 @@ jobs:
         run: |
           ISSUE_TITLE="Approval Needed for Next Step"
           ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
-          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud")  # Update with your username
+          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud")
           echo "Raw issue response: $issue_response"
-          # Extract issue number from response
           issue_number=$(echo "$issue_response" | grep -oE 'https://github.com/.*/issues/[0-9]+' | grep -oE '[0-9]+$')
           if [ -z "$issue_number" ]; then
             echo "Failed to extract issue number."
@@ -47,7 +44,7 @@ jobs:
         id: approval
         with:
           token: ${{ secrets.GH_TOKEN }}
-          approvers: 'MdShimulMahmud'  # Update with your username
+          approvers: 'MdShimulMahmud'
           minimumApprovals: '1'
           issueTitle: 'Approval Needed for Next Step'
           issueBody: 'Please comment "approve" to proceed with the third workflow.'
@@ -58,10 +55,12 @@ jobs:
           waitInterval: '1'
           waitTimeout: '60'
 
-      - name: Store the approval output as an environment variable
+      - name: Save approval status to artifact
         run: |
-          echo "APPROVED=${{ steps.approval.outputs.approved }}" >> $GITHUB_ENV
-
-      - name: Output approval status
-        run: |
-          echo "Approval status: ${{ steps.approval.outputs.approved }}"
+          echo "${{ steps.approval.outputs.approved }}" > approval_status.txt
+        id: save-approval
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: approval-status
+          path: approval_status.txt

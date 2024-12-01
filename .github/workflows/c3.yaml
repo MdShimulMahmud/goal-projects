@@ -9,13 +9,23 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs['approval'] == 'true' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: approval-status
 
-      - name: Deploy to production
+      - name: Read approval status
+        id: read-approval
         run: |
-          echo "Deploying to production..."  # Replace with actual deployment steps
+          APPROVED=$(cat approval_status.txt)
+          echo "Approval Status: $APPROVED"
+          echo "::set-output name=approved::$APPROVED"
+
+      - name: Conditional Deployment
+        if: ${{ steps.read-approval.outputs.approved == 'true' }}
+        run: |
+          echo "Deploying to production..."
           # Add deployment commands (e.g., AWS CLI, Docker, Kubernetes, etc.)
