@@ -7,10 +7,11 @@ on:
       - completed
 
 jobs:
-  approval:
+  approval_jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Run only if Build Workflow is successful
-
+    outputs:
+      approval: ${{ steps.approval.outputs.approved }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -55,7 +56,7 @@ jobs:
           approveWords: 'approve, approved'
           rejectWords: 'deny, denied, reject, rejected'
           waitInterval: '1'
-          waitTimeout: '5'
+          waitTimeout: '60'
 
       - name: Store the approval output as an environment variable
         run: |

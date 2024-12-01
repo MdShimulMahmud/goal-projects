@@ -9,7 +9,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.approval == 'true' }}  # Runs only if approved in Workflow 2
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs['approval'] == 'true' }}
 
     steps:
       - name: Checkout repository
