@@ -61,16 +61,14 @@ pipeline {
             steps {
                 script {
                     def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
-
-                    // Trigger the second pipeline with the new image tag
-                    build job: 'update-k8s-manifests', // Name of the job in the other repo
-                        parameters: [
-                            string(name: 'FRONTEND_IMAGE_TAG', value: "shimulmahmud/frontend:${current_version}"),
-                            string(name: 'BACKEND_IMAGE_TAG', value: "shimulmahmud/backend:${current_version}")
-                        ]
+                    build job: 'update-k8s-manifests', parameters: [
+                        string(name: 'FRONTEND_IMAGE_TAG', value: "${DOCKER_USERNAME}/frontend:${current_version}"),
+                        string(name: 'BACKEND_IMAGE_TAG', value: "${DOCKER_USERNAME}/backend:${current_version}")
+                    ]
                 }
             }
         }
+
     }
     post {
         always {
