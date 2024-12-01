@@ -2,7 +2,8 @@
 
 ## Frontend Development
 
-### A Reactjs project for crud application with backend built with Nodejs and MongoDB database.
+### A fullstack MERN project which has Reactjs as frontend, Nodejs as backend and MongoDB as a Database. 
+1. 
 
 
 ## Backend Development

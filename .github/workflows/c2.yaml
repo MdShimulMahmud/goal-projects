@@ -14,30 +14,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up GitHub CLI
-        run: |
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh
-      - name: Install jq
-        run: sudo apt-get install jq
+      # - name: Set up GitHub CLI
+      #   run: |
+      #     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+      #     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+      #     sudo apt update
+      #     sudo apt install gh
+      # - name: Install jq
+      #   run: sudo apt-get install jq
 
-      - name: Create GitHub Issue for Approval
-        id: issue
-        run: |
-          ISSUE_TITLE="Approval Needed for Next Step"
-          ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
-          issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud")
-          echo "Raw issue response: $issue_response"
-          issue_number=$(echo "$issue_response" | grep -oE 'https://github.com/.*/issues/[0-9]+' | grep -oE '[0-9]+$')
-          if [ -z "$issue_number" ]; then
-            echo "Failed to extract issue number."
-            exit 1
-          fi
-          echo "::set-output name=issue_number::$issue_number"
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      # - name: Create GitHub Issue for Approval
+      #   id: issue
+      #   run: |
+      #     ISSUE_TITLE="Approval Needed for Next Step"
+      #     ISSUE_BODY="Please comment 'approve' on this issue to proceed with the third workflow."
+      #     issue_response=$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ManualApproval" --assignee "MdShimulMahmud")
+      #     echo "Raw issue response: $issue_response"
+      #     issue_number=$(echo "$issue_response" | grep -oE 'https://github.com/.*/issues/[0-9]+' | grep -oE '[0-9]+$')
+      #     if [ -z "$issue_number" ]; then
+      #       echo "Failed to extract issue number."
+      #       exit 1
+      #     fi
+      #     echo "::set-output name=issue_number::$issue_number"
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Wait for approval comment
         uses: ekeel/approval-action@v1.0.3
