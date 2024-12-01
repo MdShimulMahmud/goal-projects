@@ -28,8 +28,8 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           approvers: 'MdShimulMahmud'
           minimumApprovals: '1'
-          issueTitle: 'Test issue title'
-          issueBody: 'Test issue body'
+          issueTitle: 'Application release approval'
+          issueBody: 'Approve this issue to deploy the application'
           issueLabels: 'ManualApproval,ApprovalAction'
           excludeInitiator: 'false'
           approveWords: 'approve, approved'
