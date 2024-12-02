@@ -24,4 +24,4 @@ spec:
       - Validate=false
       - Prune=true
       - SelfHeal=true
-  revisionHistoryLimit: 2  # Make sure this is working
+  revisionHistoryLimit: 2  
