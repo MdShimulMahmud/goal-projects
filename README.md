@@ -595,6 +595,33 @@ Your jenkins server running on http://localhost:8080 or ```your_server_ip_addres
     - Build and push Docker images for both frontend and backend using the current version as the tag.
     - Handle any exceptions that occur during the Docker build or push process.
 
+### 4. Update Manifest Pipeline Trigger
+
+This project contains a Jenkins pipeline stage to trigger the `update-k8s-manifests` job by passing the current version as an `IMAGE_TAG` parameter.
+
+The `Trigger Update Manifest Pipeline` stage performs the following tasks:
+1. Reads the current version from a `VERSION` file.
+2. Triggers the `update-k8s-manifests` pipeline with the current version as a parameter.
+
+#### Code Snippet
+
+```groovy
+stage('Trigger Update Manifest Pipeline') {
+    agent any
+    steps {
+        script {
+            def current_version = sh(script: "cat VERSION", returnStdout: true).trim()
+            
+            build job: 'update-k8s-manifests', parameters: [
+                string(name: 'IMAGE_TAG', value: "${current_version}")
+            ]
+        }
+    }
+}
+```
+In Infra Repository, you will find all the manifests used in this project. [Repo url](https://github.com/MdShimulMahmud/goal-projects-infra.git)
+
+
 ## Post Actions
 
 - **Always**: Print a message indicating that the pipeline has completed.
