@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: test-argocd
+  namespace: argocd
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: argocd_deploy_notifications
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-sync-succeeded.gmail: test@gmail.com
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MdShimulMahmud/goal-projects-infra.git
+    targetRevision: HEAD
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - Validate=false
+    - Prune=true
+    - SelfHeal=trum
