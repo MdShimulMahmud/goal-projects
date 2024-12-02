@@ -632,4 +632,6 @@ In Infra Repository, you will find all the manifests used in this project. [Repo
 
 To use this Jenkinsfile, place it in the root directory of your project and configure your Jenkins job to use it. Ensure that the necessary credentials (`github-token`, `docker-username`, and `docker-password`) are configured in Jenkins.
 
+Hit your jenkins url to checkout either it's working or not!
+
 Happy Coding!!!
