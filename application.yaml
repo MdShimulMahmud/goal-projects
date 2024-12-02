@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/MdShimulMahmud/goal-projects-infra.git
-    targetRevision: HEAD  # Replace HEAD with a branch or tag if needed
+    targetRevision: HEAD
     path: k8s
   destination:
     server: https://kubernetes.default.svc
@@ -21,7 +21,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - Validate=false
-    - Prune=true
-    - SelfHeal=true
-  revisionHistoryLimit: 1  # Keep only the last 2 revisions
+      - Validate=false
+      - Prune=true
+      - SelfHeal=true
+  revisionHistoryLimit: 2  # Make sure this is working
